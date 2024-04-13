@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMORPG Client</title>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const serverUrl = 'ws://localhost:8080/ws';
+            const ws = new WebSocket(serverUrl);
+
+            ws.onopen = () => {
+                console.log('Connected to the server');
+
+                // Example command to send to the server
+                const command = JSON.stringify({
+                    type: 'connect'
+                });
+                ws.send(command);
+            };
+
+            ws.onmessage = (event) => {
+                console.log('Message from server:', event.data);
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+
+            ws.onclose = (event) => {
+                console.log('Disconnected from server', event.reason);
+            };
+        });
+    </script>
+</head>
+
+<body>
+    <h1>MMORPG WebSocket Client</h1>
+    <p>Open your console to see server messages.</p>
+</body>
+
+</html>

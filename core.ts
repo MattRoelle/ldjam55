@@ -7,6 +7,56 @@ export const BOARD_BOTTOM_LEFT: Vec2 = [0, BOARD_HEIGHT - 1];
 export const BOARD_CENTER: Vec2 = [BOARD_WIDTH / 2, BOARD_HEIGHT / 2];
 export const PLAYER_SPAWN_POSITION: Vec2 = [32, 32];
 
+export const GAME_MAP: GameMapConfig = {
+  spawns: [
+    {
+      id: "guide",
+      npcId: "GUIDE",
+      position: [32, 30],
+      type: "interval",
+      minTicks: 4,
+      maxTicks: 8,
+    },
+    {
+      id: "slime-1",
+      npcId: "SLIME",
+      position: [15, 15],
+      type: "interval",
+      minTicks: 4,
+      maxTicks: 8,
+    },
+    {
+      id: "goblin-1",
+      npcId: "GOBLIN",
+      position: [48, 45],
+      type: "interval",
+      minTicks: 10,
+      maxTicks: 20,
+    },
+    {
+      id: "goblin-2",
+      npcId: "GOBLIN",
+      position: [42, 45],
+      type: "interval",
+      minTicks: 10,
+      maxTicks: 20,
+    },
+    {
+      id: "goblin-3",
+      npcId: "GOBLIN",
+      position: [44, 47],
+      type: "interval",
+      minTicks: 10,
+      maxTicks: 20,
+    },
+  ],
+  tiles: {
+    "0,0": {
+      isSolid: true,
+    },
+  },
+};
+
 export const ITEM_LOOKUP = {
   HP_POT_1: {
     name: "Small HP Potion",
@@ -57,15 +107,36 @@ export const NPC_LOOKUP = {
 };
 
 export type ItemInstance = {
+  id: string;
   iid: ItemID;
 };
 
 export type NPCInfo = {
   id: string;
+  npcId: NPCID;
   position: Vec2;
   hp: number;
   mp: number;
 };
+
+export type PlayerActions =
+  | {
+      type: "move-to";
+      to: Vec2;
+    }
+  | {
+      type: "pick-up-items";
+      tile: Vec2;
+    }
+  | {
+      type: "use-item";
+      // Must be in player's inventory
+      itemId: string;
+    }
+  | {
+      type: "attack-npc";
+      npcId: string;
+    };
 
 export type PlayerStates =
   | {
@@ -96,12 +167,28 @@ export type PlayerInfo = {
     defense: number;
     magic: number;
   };
-  inventory: ItemInstance[];
+  inventory: (ItemInstance | null)[];
   hp: number;
   mp: number;
 };
 
+export type GameMapTileConfig = {
+  isSolid?: boolean;
+  isWater?: boolean;
+};
+
+export type GameMapConfig = {
+  spawns: NPCSpawnConfig[];
+  // tileKey
+  tiles: Record<string, GameMapTileConfig>;
+};
+
+export function tilekey(x: number, y: number): string {
+  return `${x},${y}`;
+}
+
 export type NPCSpawnConfig = {
+  id: string;
   npcId: NPCID;
   position: Vec2;
 } & (
@@ -110,8 +197,8 @@ export type NPCSpawnConfig = {
     }
   | {
       type: "interval";
-      minSeconds: number;
-      maxSeconds: number;
+      minTicks: number;
+      maxTicks: number;
     }
 );
 
@@ -120,15 +207,31 @@ export type TileInstance = {
   items: ItemInstance[];
 };
 
+export type ServerCommand =
+  | ({
+      senderId: string;
+    } & {
+      type: "player-action";
+      action: PlayerActions;
+    })
+  | {
+      type: "connect";
+    };
+
+export type ServerLogMessasge = {
+  tick: number;
+  message: string;
+};
+
 export type ServerState = {
   tick: number;
   players: Record<string, PlayerInfo>;
   npcs: Record<string, NPCInfo>;
-  mapData: {
-    [x: number]: {
-      [y: number]: TileInstance;
-    };
-  };
+  commandQueue: ServerCommand[];
+  log: ServerLogMessasge[];
+  mapConfig: GameMapConfig;
+  // tileKey
+  map: Record<string, TileInstance>;
 };
 
 export type Vec2 = [number, number];
