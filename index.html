@@ -39,11 +39,13 @@
     </div>
     <div class="flex flex-row bg-green-500 h-screen w-screen">
         <div class="flex-1">
-            <div id="game-board" class="mx-auto"></div>
+            <div id="game-board" class="mx-auto"
+                style="background-size: 100% 100%; background-repeat: no-repeat; background: url('./public/ld.png');">
+            </div>
         </div>
         <div class="w-[400px] bg-neutral-800 p-4 h-full">
             <p class="text-md text-white">Inventory</p>
-            <div class="p-4 bg-neutral-100 mb-4 h-50"></div>
+            <div class="p-4 bg-black mb-4 h-50" id="player-inventory"></div>
             <p class="text-md text-white">Spells</p>
             <div class="p-4 bg-neutral-100 mb-4 h-50"></div>
             <p class="text-md text-white">Spells</p>

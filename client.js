@@ -1,8 +1,11 @@
 const CLIENT_STATE = {
   ws: null,
   serverState: null,
+  mePlayer: null,
 };
 let $gameBoard;
+let $inventory;
+let $inventoryContainer;
 let $tileElements = {};
 
 const BOARD_WIDTH = 32;
@@ -14,6 +17,9 @@ function initGameBoardHtml() {
     return;
   }
 
+  $inventoryContainer = document.getElementById("player-inventory");
+  $inventoryContainer.style.display = "grid";
+  $inventoryContainer.style.gridTemplateColumns = `repeat(4, 60px)`;
   $gameBoard.innerHTML = "";
   const boardSize = $gameBoard.parentNode.getBoundingClientRect();
   let sz = Math.min(boardSize.width, boardSize.height) / BOARD_WIDTH;
@@ -21,6 +27,18 @@ function initGameBoardHtml() {
   $gameBoard.style.height = `${sz * BOARD_HEIGHT}px`;
   $gameBoard.style.display = "grid";
   $gameBoard.style.gridTemplateColumns = `repeat(${BOARD_WIDTH}, ${sz}px)`;
+
+  $inventory = [];
+  for (let i = 0; i < 20; i++) {
+    const inventoryItem = document.createElement("div");
+    inventoryItem.style.width = `60px`;
+    inventoryItem.style.height = `60px`;
+    inventoryItem.style.border = "1px solid rgba(255,255,255,0.1)";
+    inventoryItem.style.boxSizing = "border-box";
+    inventoryItem.style.color = "white";
+    $inventoryContainer.appendChild(inventoryItem);
+    $inventory[i] = inventoryItem;
+  }
 
   for (let y = 0; y < BOARD_HEIGHT; y++) {
     for (let x = 0; x < BOARD_WIDTH; x++) {
@@ -105,6 +123,14 @@ function updateGameBoardHtml() {
     $tile.innerHTML = ""; // Clear the tile before adding the player
     $tile.appendChild(playerElement);
   }
+
+  for (let i = 0; i < CLIENT_STATE.mePlayer.inventory.length; i++) {
+    const item = CLIENT_STATE.mePlayer.inventory[i];
+    if (!item) {
+    } else {
+      $inventory[i].innerHTML = item.iid;
+    }
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -141,6 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loginBtn.addEventListener("click", async () => {
     const username = usernameInput.value;
+    CLIENT_STATE.username = username;
     const password = passwordInput.value;
     const response = await fetch("/login", {
       method: "POST",
@@ -210,8 +237,9 @@ document.addEventListener("DOMContentLoaded", () => {
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
       if (msg.type === "set-state") {
-        CLIENT_STATE.serverState = msg.state;
         console.log("Received server state", CLIENT_STATE.serverState);
+        CLIENT_STATE.serverState = msg.state;
+        CLIENT_STATE.mePlayer = msg.state.players[CLIENT_STATE.username];
         updateGameBoardHtml();
       }
     };

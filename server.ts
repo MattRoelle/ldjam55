@@ -75,13 +75,56 @@ for await (const conn of server) {
   handleConn(conn);
 }
 
+function getContentType(path: string): string {
+  const extension = path.split(".").pop();
+  switch (extension) {
+    case "html":
+      return "text/html";
+    case "js":
+      return "application/javascript";
+    case "css":
+      return "text/css";
+    case "png":
+      return "image/png";
+    case "jpg":
+      return "image/jpeg";
+    case "jpeg":
+      return "image/jpeg";
+    case "svg":
+      return "image/svg+xml";
+    default:
+      return "application/octet-stream";
+  }
+}
+
 async function handleConn(conn: Deno.Conn) {
   const httpConn = Deno.serveHttp(conn);
   for await (const requestEvent of httpConn) {
     const { pathname } = new URL(requestEvent.request.url);
     console.log(`Request for ${pathname}`);
 
-    if (pathname === "/client.js") {
+    if (pathname.startsWith("/public/")) {
+      // Attempt to serve the file from the public directory
+      const filePath = `./public/${pathname.replace("/public", "")}`;
+      try {
+        const contentType = getContentType(filePath);
+        const file = await Deno.open(filePath, {
+          read: true,
+        });
+        requestEvent.respondWith(
+          new Response(file.readable, {
+            headers: new Headers({
+              "Content-Type": contentType,
+            }),
+          })
+        );
+      } catch (error) {
+        console.error("Error reading file:", error);
+        requestEvent.respondWith(
+          new Response("File not found", { status: 404 })
+        );
+      }
+    } else if (pathname === "/client.js") {
       // Serve the client-side JavaScript file
       const jsContent = await Deno.readTextFile("./client.js");
       requestEvent.respondWith(
