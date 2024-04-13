@@ -5,12 +5,16 @@ import {
 } from "https://deno.land/x/djwt/mod.ts";
 import { hash } from "https://deno.land/x/argontwo/mod.ts";
 
-const JWT_SECRET_KEY = "123123123123123123";
+const ENCODER = new TextEncoder();
+const JWT_SECRET_KEY = await crypto.subtle.generateKey(
+  { name: "HMAC", hash: "SHA-512" },
+  true,
+  ["sign", "verify"]
+);
 
 export function hashPassword(input: string): [string, string] {
-  const encoder = new TextEncoder();
   const salt = crypto.getRandomValues(new Uint8Array(16));
-  const password = encoder.encode(input);
+  const password = ENCODER.encode(input);
   const hashBuffer = hash(password, salt);
   return [hashBuffer.toString(), salt.toString()];
 }
@@ -20,23 +24,24 @@ export function verifyPassword(
   inputHash: string,
   salt: string
 ): boolean {
-  const encoder = new TextEncoder();
-  const password = encoder.encode(input);
-  const hashBuffer = hash(password, encoder.encode(salt));
+  const password = ENCODER.encode(input);
+  const hashBuffer = hash(password, ENCODER.encode(salt));
   return hashBuffer.toString() === inputHash;
 }
 
 export async function createToken(username: string): Promise<string> {
   return await create(
-    { alg: "HS512", typ: "JWT" },
+    {
+      alg: "HS512",
+    },
     { exp: getNumericDate(60 * 60 * 24), username },
-    JWT_SECRET_KEY as any
+    JWT_SECRET_KEY
   );
 }
 
 export async function verifyToken(token: string): Promise<any | null> {
   try {
-    const payload = await verify(token, JWT_SECRET_KEY as any);
+    const payload = await verify(token, JWT_SECRET_KEY, {});
     return payload;
   } catch {
     return null;
