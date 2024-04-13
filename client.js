@@ -31,10 +31,22 @@ function initGameBoardHtml() {
       tile.style.borderLeft = "1px solid rgba(0,0,0,0.1)";
       tile.style.borderTop = "1px solid rgba(0,0,0,0.1)";
       tile.style.boxSizing = "border-box";
+      tile.addEventListener("click", () => handleTileClick(x, y));
       $gameBoard.appendChild(tile);
       $tileElements[tileKey] = tile;
     }
   }
+}
+
+function handleTileClick(x, y) {
+  const action = {
+    type: "player-action",
+    action: {
+      type: "move-to",
+      to: [x, y],
+    },
+  };
+  CLIENT_STATE.ws.send(JSON.stringify(action));
 }
 
 function updateGameBoardHtml() {
@@ -182,6 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function initializeWebSocket() {
     const serverUrl = `ws://localhost:8080/ws?token=${CLIENT_STATE.token}`;
     const ws = new WebSocket(serverUrl);
+    CLIENT_STATE.ws = ws;
 
     ws.onopen = () => {
       console.log("Connected to the server");

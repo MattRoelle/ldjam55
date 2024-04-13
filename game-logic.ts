@@ -92,8 +92,9 @@ function calculateDistance(pos1: Vec2, pos2: Vec2): number {
 }
 
 function isTileBlocked(state: ServerState, position: Vec2): boolean {
-  const tileKey = tilekey(position[0], position[1]);
-  return state.mapConfig.tiles[tileKey]?.isSolid || false;
+  return false;
+  // const tileKey = tilekey(position[0], position[1]);
+  // return state.mapConfig.tiles[tileKey]?.isSolid || false;
 }
 
 export function processCommandQueue(state: ServerState): ServerState {

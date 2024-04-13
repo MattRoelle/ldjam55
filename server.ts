@@ -143,6 +143,8 @@ async function handleConn(conn: Deno.Conn) {
         console.log("Received message:", event.data);
         try {
           const command: ServerCommand = JSON.parse(event.data);
+          // @ts-ignore
+          command.senderId = username;
           serverState.commandQueue.push(command);
         } catch (error) {
           console.error("Failed to parse command:", error);
