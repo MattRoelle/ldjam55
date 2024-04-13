@@ -1,6 +1,18 @@
-import { GAME_MAP, ServerCommand, ServerState } from "./core.ts";
-import { createToken, hashPassword, verifyPassword } from "./auth.ts";
 import {
+  GAME_MAP,
+  PLAYER_SPAWN_POSITION,
+  PlayerInfo,
+  ServerCommand,
+  ServerState,
+} from "./core.ts";
+import {
+  createToken,
+  hashPassword,
+  verifyPassword,
+  verifyToken,
+} from "./auth.ts";
+import {
+  genUUID,
   initServerState,
   processCommandQueue,
   processTick,
@@ -35,13 +47,13 @@ async function fetchHtml(filePath: string): Promise<string> {
   }
 }
 
-// Broadcast state to all WebSocket clients
+// Broadciast state to all WebSocket clients
 function broadcastState(clients: Set<WebSocket>) {
   for (const client of clients) {
     if (client.readyState === WebSocket.OPEN) {
       client.send(
         JSON.stringify({
-          type: "state-update",
+          type: "set-state",
           state: serverState,
         })
       );
@@ -86,10 +98,47 @@ async function handleConn(conn: Deno.Conn) {
         })
       );
     } else if (pathname === "/ws") {
-      // Handling WebSocket connections
+      const requestURL = new URL(requestEvent.request.url);
+      const token = requestURL.searchParams.get("token");
+      console.log("Token:", token);
+      const jwtToken = await verifyToken((token || "").trim());
+
+      if (!jwtToken) {
+        requestEvent.respondWith(new Response("Unauthorized", { status: 401 }));
+        return;
+      }
+
+      const username = jwtToken.username;
+
       const { socket, response } = Deno.upgradeWebSocket(requestEvent.request);
       clients.add(socket);
-      socket.onopen = () => console.log("Client connected");
+      socket.onopen = () => {
+        serverState.players[username] = {
+          hp: 10,
+          mp: 10,
+          id: username,
+          inventory: [
+            {
+              id: genUUID(),
+              iid: "HP_POT_1",
+            },
+            {
+              id: genUUID(),
+              iid: "RUSTY_SWORD",
+            },
+          ],
+          name: username,
+          position: PLAYER_SPAWN_POSITION,
+          skills: {
+            strength: 0,
+            attack: 0,
+            defense: 0,
+            magic: 0,
+          },
+          state: { type: "idle" },
+        };
+        console.log("Client connected");
+      };
       socket.onmessage = (event) => {
         console.log("Received message:", event.data);
         try {
@@ -132,6 +181,33 @@ async function handleSignup(request: Request): Promise<Response> {
     passwordHash: passwordHash[0],
     passwordSalt: passwordHash[1],
   });
+
+  const newPlayer: PlayerInfo = {
+    hp: 10,
+    mp: 10,
+    id: username,
+    inventory: [
+      {
+        id: genUUID(),
+        iid: "HP_POT_1",
+      },
+      {
+        id: genUUID(),
+        iid: "RUSTY_SWORD",
+      },
+    ],
+    name: username,
+    position: PLAYER_SPAWN_POSITION,
+    skills: {
+      strength: 0,
+      attack: 0,
+      defense: 0,
+      magic: 0,
+    },
+    state: { type: "idle" },
+  };
+
+  serverState.players[username] = newPlayer;
   return new Response(JSON.stringify({ message: "User created" }), {
     status: 201,
   });

@@ -1,18 +1,13 @@
-export const BOARD_WIDTH = 64;
-export const BOARD_HEIGHT = 64;
-export const BOARD_TOP_LEFT: Vec2 = [0, 0];
-export const BOARD_TOP_RIGHT: Vec2 = [BOARD_WIDTH - 1, 0];
-export const BOARD_BOTTOM_RIGHT: Vec2 = [BOARD_WIDTH - 1, BOARD_HEIGHT - 1];
-export const BOARD_BOTTOM_LEFT: Vec2 = [0, BOARD_HEIGHT - 1];
-export const BOARD_CENTER: Vec2 = [BOARD_WIDTH / 2, BOARD_HEIGHT / 2];
-export const PLAYER_SPAWN_POSITION: Vec2 = [32, 32];
+export const BOARD_WIDTH = 32;
+export const BOARD_HEIGHT = 32;
+export const PLAYER_SPAWN_POSITION: Vec2 = [16, 16];
 
 export const GAME_MAP: GameMapConfig = {
   spawns: [
     {
       id: "guide",
       npcId: "GUIDE",
-      position: [32, 30],
+      position: [16, 12],
       type: "interval",
       minTicks: 4,
       maxTicks: 8,
@@ -20,7 +15,7 @@ export const GAME_MAP: GameMapConfig = {
     {
       id: "slime-1",
       npcId: "SLIME",
-      position: [15, 15],
+      position: [5, 5],
       type: "interval",
       minTicks: 4,
       maxTicks: 8,
@@ -28,23 +23,7 @@ export const GAME_MAP: GameMapConfig = {
     {
       id: "goblin-1",
       npcId: "GOBLIN",
-      position: [48, 45],
-      type: "interval",
-      minTicks: 10,
-      maxTicks: 20,
-    },
-    {
-      id: "goblin-2",
-      npcId: "GOBLIN",
-      position: [42, 45],
-      type: "interval",
-      minTicks: 10,
-      maxTicks: 20,
-    },
-    {
-      id: "goblin-3",
-      npcId: "GOBLIN",
-      position: [44, 47],
+      position: [25, 25],
       type: "interval",
       minTicks: 10,
       maxTicks: 20,

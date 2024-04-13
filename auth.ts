@@ -41,9 +41,12 @@ export async function createToken(username: string): Promise<string> {
 
 export async function verifyToken(token: string): Promise<any | null> {
   try {
-    const payload = await verify(token, JWT_SECRET_KEY, {});
+    const payload = await verify(token, JWT_SECRET_KEY, {
+      ignoreExp: true,
+    });
     return payload;
-  } catch {
+  } catch (ex) {
+    console.error("Error verifying token: ", ex);
     return null;
   }
 }
