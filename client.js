@@ -54,6 +54,8 @@ function updateGameBoardHtml() {
     for (let x = 0; x < BOARD_WIDTH; x++) {
       const tileKey = `${x},${y}`;
       const $tile = $tileElements[tileKey];
+      if (!$tile) continue;
+      $tile.innerHTML = "";
 
       // Access tile information from the server state
       const tileInfo = CLIENT_STATE.serverState?.map[tileKey];
