@@ -1,9 +1,17 @@
 import { GAME_MAP, ServerCommand, ServerState } from "./core.ts";
+import { createToken, hashPassword, verifyPassword } from "./auth.ts";
 import {
   initServerState,
   processCommandQueue,
   processTick,
 } from "./game-logic.ts";
+
+// Globals
+type DBUser = {
+  passwordHash: string;
+  passwordSalt: string;
+};
+const users = new Map<string, DBUser>();
 
 // Constants
 const PORT = 8080;
@@ -61,7 +69,15 @@ async function handleConn(conn: Deno.Conn) {
     const { pathname } = new URL(requestEvent.request.url);
     console.log(`Request for ${pathname}`);
 
-    if (pathname === "/" || pathname === "/index.html") {
+    if (pathname === "/client.js") {
+      // Serve the client-side JavaScript file
+      const jsContent = await Deno.readTextFile("./client.js");
+      requestEvent.respondWith(
+        new Response(jsContent, {
+          headers: { "Content-Type": "application/javascript" },
+        })
+      );
+    } else if (pathname === "/" || pathname === "/index.html") {
       // Serve the HTML page for root or specified path
       const htmlContent = await fetchHtml(HTML_PATH);
       requestEvent.respondWith(
@@ -89,9 +105,54 @@ async function handleConn(conn: Deno.Conn) {
       };
       socket.onerror = (event) => console.error("WebSocket error:", event);
       requestEvent.respondWith(response);
+    } else if (pathname === "/signup") {
+      requestEvent.respondWith(await handleSignup(requestEvent.request));
+    } else if (pathname === "/login") {
+      requestEvent.respondWith(await handleLogin(requestEvent.request));
     } else {
       // Return 404 for other paths
       requestEvent.respondWith(new Response("Not Found", { status: 404 }));
     }
   }
+}
+
+async function handleSignup(request: Request): Promise<Response> {
+  const formData = await request.formData();
+  const username = formData.get("username")?.toString() || "";
+  const password = formData.get("password")?.toString() || "";
+
+  if (users.has(username)) {
+    return new Response(JSON.stringify({ error: "User already exists" }), {
+      status: 409,
+    });
+  }
+
+  const passwordHash = hashPassword(password);
+  users.set(username, {
+    passwordHash: passwordHash[0],
+    passwordSalt: passwordHash[1],
+  });
+  return new Response(JSON.stringify({ message: "User created" }), {
+    status: 201,
+  });
+}
+
+async function handleLogin(request: Request): Promise<Response> {
+  const formData = await request.formData();
+  const username = formData.get("username")?.toString() || "";
+  const password = formData.get("password")?.toString() || "";
+
+  const user = users.get(username);
+  if (
+    !user ||
+    !verifyPassword(password, user.passwordHash, user.passwordSalt)
+  ) {
+    return new Response(
+      JSON.stringify({ error: "Invalid username or password" }),
+      { status: 401 }
+    );
+  }
+
+  const token = await createToken(username);
+  return new Response(JSON.stringify({ token }), { status: 200 });
 }

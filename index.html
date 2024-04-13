@@ -5,39 +5,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MMORPG Client</title>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const serverUrl = 'ws://localhost:8080/ws';
-            const ws = new WebSocket(serverUrl);
-
-            ws.onopen = () => {
-                console.log('Connected to the server');
-
-                // Example command to send to the server
-                const command = JSON.stringify({
-                    type: 'connect'
-                });
-                ws.send(command);
-            };
-
-            ws.onmessage = (event) => {
-                console.log('Message from server:', event.data);
-            };
-
-            ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
-            };
-
-            ws.onclose = (event) => {
-                console.log('Disconnected from server', event.reason);
-            };
-        });
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./client.js"></script>
 </head>
 
 <body>
-    <h1>MMORPG WebSocket Client</h1>
-    <p>Open your console to see server messages.</p>
+    <div id="loginModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full"
+        style="display: block;">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="tabs">
+                <button id="showLogin" class="tab focus:outline-none">Login</button>
+                <button id="showSignup" class="tab focus:outline-none" style="color: blue;">Signup</button>
+            </div>
+            <div id="loginForm" style="display: none;" class="mt-3">
+                <input type=" text" id="usernameInput" placeholder="Username"
+                    class="mb-3 mt-1 p-2 w-full border rounded-md">
+                <input type="password" id="passwordInput" placeholder="Password"
+                    class="mb-3 mt-1 p-2 w-full border rounded-md">
+                <button id="loginBtn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-400">Log
+                    In</button>
+            </div>
+            <div id="signupForm" class="mt-3" style="display: block;">
+                <input type="text" id="newUsername" placeholder="Username"
+                    class="mb-3 mt-1 p-2 w-full border rounded-md">
+                <input type="password" id="newPassword" placeholder="Password"
+                    class="mb-3 mt-1 p-2 w-full border rounded-md">
+                <input type="password" id="repeatPassword" placeholder="Password"
+                    class="mb-3 mt-1 p-2 w-full border rounded-md">
+                <button id="signupBtn" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-400">Sign
+                    Up</button>
+            </div>
+        </div>
+    </div>
+    <div class="flex flex-row bg-green-500 h-screen w-screen">
+        <div class="flex-1 h-full"></div>
+        <div class="w-[300px] bg-neutral-800 p-4 h-full">
+            <p class="text-md text-white">Inventory</p>
+            <div class="p-4 bg-neutral-100 mb-4 h-50"></div>
+            <p class="text-md text-white">Spells</p>
+            <div class="p-4 bg-neutral-100 mb-4 h-50"></div>
+            <p class="text-md text-white">Spells</p>
+            <div class="p-4 bg-neutral-100 mb-4 h-50"></div>
+        </div>
+    </div>
 </body>
 
 </html>
